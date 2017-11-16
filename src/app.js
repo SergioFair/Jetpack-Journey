@@ -32,12 +32,6 @@ var MenuLayer = cc.Layer.extend({
     }, pulsarBotonJugar : function(){
          cc.director.runScene(new GameScene());
     }
-
-
-
-
-
-
 });
 
 var MenuScene = cc.Scene.extend({

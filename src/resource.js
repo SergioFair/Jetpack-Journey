@@ -13,6 +13,8 @@ var res = {
     jugador_subiendo_png : "res/jugador_subiendo.png",
     jugador_subiendo_plist : "res/jugador_subiendo.plist",
     boton_saltar_png: "res/boton_saltar.png",
+    boton_disparar_png: "res/boton_disparar.png",
+    boton_turbo_png: "res/boton_turbo.png",
 };
 
 var g_resources = [];

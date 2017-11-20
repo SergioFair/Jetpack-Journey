@@ -10,6 +10,7 @@ var GameLayer = cc.Layer.extend({
     mapaAncho: null,
     monedas: [],
     enemigos: [],
+    pinchos: [],
     formasEliminar: [],
     _emitter: null,
     tiempoEfecto: 0,
@@ -168,6 +169,16 @@ var GameLayer = cc.Layer.extend({
                 cc.p(enemigosArray[i]["x"], enemigosArray[i]["y"]));
             enemigo.shape.setCollisionType(tipoEnemigo);
             this.enemigos.push(enemigo);
+        }
+
+        // Pinchos
+        var grupoPinchos = this.mapa.getObjectGroup("Pinchos");
+        var pinchosArray = grupoPinchos.getObjects();
+        for (var i = 0; i < pinchosArray.length; i++) {
+            var pincho = new Pinchos(this,
+                cc.p(pinchosArray[i]["x"], pinchosArray[i]["y"]));
+            pincho.shape.setCollisionType(tipoEnemigo);
+            this.pinchos.push(pincho);
         }
     }, collisionSueloConJugador: function (arbiter, space) {
         this.jugador.tocaSuelo();

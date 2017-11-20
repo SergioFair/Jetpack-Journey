@@ -16,6 +16,7 @@
         "src/GameScene.js",
         "src/Moneda.js",
         "src/Jugador.js",
-        "src/ControlesLayer.js"
+        "src/ControlesLayer.js",
+        "src/Enemigo.js"
     ]
 }

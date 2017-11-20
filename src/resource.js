@@ -15,6 +15,8 @@ var res = {
     boton_saltar_png: "res/boton_saltar.png",
     boton_disparar_png: "res/boton_disparar.png",
     boton_turbo_png: "res/boton_turbo.png",
+    animacion_cuervo_png: "res/animacion_cuervo.png",
+    animacion_cuervo_plist: "res/animacion_cuervo.plist",
 };
 
 var g_resources = [];

@@ -88,6 +88,8 @@ var Jugador = cc.Class.extend({
             this.body.applyImpulse(cp.v(10000, 0), cp.v(0, 0));
             numeroAceleraciones++;
         }
+    }, reiniciarAceleraciones: function(){
+        numeroAceleraciones = 0;
     }
 
 });

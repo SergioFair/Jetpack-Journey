@@ -1,6 +1,7 @@
 var tipoSuelo = 1;
 var tipoJugador = 2;
 var tipoMoneda = 3;
+var tipoEnemigo = 4;
 
 var GameLayer = cc.Layer.extend({
     space: null,
@@ -8,7 +9,10 @@ var GameLayer = cc.Layer.extend({
     mapa: null,
     mapaAncho: null,
     monedas: [],
+    enemigos: [],
     formasEliminar: [],
+    _emitter: null,
+    tiempoEfecto: 0,
     ctor: function () {
         this._super();
         var size = cc.winSize;
@@ -17,7 +21,7 @@ var GameLayer = cc.Layer.extend({
         cc.spriteFrameCache.addSpriteFrames(res.moneda_plist);
         cc.spriteFrameCache.addSpriteFrames(res.jugador_subiendo_plist);
         cc.spriteFrameCache.addSpriteFrames(res.jugador_avanzando_plist);
-
+        cc.spriteFrameCache.addSpriteFrames(res.animacion_cuervo_plist);
 
         // Inicializar Space
         this.space = new cp.Space();
@@ -31,18 +35,47 @@ var GameLayer = cc.Layer.extend({
             null, null, this.collisionSueloConJugador.bind(this), null);
 
         // jugador y moneda
-        // IMPORTANTE: Invocamos el método antes de resolver la colisión (realmente no habrá colisión por la propiedad SENSOR de la Moneda).
+        // IMPORTANTE: Invocamos el método antes de resolver la colisión
+        // (realmente no habrá colisión por la propiedad SENSOR de la Moneda).
         this.space.addCollisionHandler(tipoJugador, tipoMoneda,
             null, this.collisionJugadorConMoneda.bind(this), null, null);
+
+        // Jugador y enemigos
+        this.space.addCollisionHandler(tipoJugador, tipoEnemigo,
+            null, this.collisionJugadorConEnemigo.bind(this), null, null);
 
 
         this.jugador = new Jugador(this, cc.p(50, 150));
         this.cargarMapa();
         this.scheduleUpdate();
+
+        // Declarar emisor de particulas (parado)
+        this._emitter = new cc.ParticleGalaxy.create();
+        this._emitter.setEmissionRate(0);
+        //this._emitter.texture = cc.textureCache.addImage(res.fire_png);
+        this._emitter.shapeType = cc.ParticleSystem.STAR_SHAPE;
+        this.addChild(this._emitter, 10);
+
         return true;
     }, update: function (dt) {
         this.jugador.estado = estadoSaltando;
         this.space.step(dt);
+
+        for (var i = 0; i < this.enemigos.length; i++) {
+            this.enemigos[i].update(dt, this.jugador.body.p.x);
+        }
+
+        // Control de emisor de partículas
+        if (this.tiempoEfecto > 0) {
+            this.tiempoEfecto = this.tiempoEfecto - dt;
+            this._emitter.x = this.jugador.body.p.x;
+            this._emitter.y = this.jugador.body.p.y;
+
+        }
+        if (this.tiempoEfecto < 0) {
+            this._emitter.setEmissionRate(0);
+            this.tiempoEfecto = 0;
+        }
 
         // Controlar el angulo (son radianes) max y min.
         if (this.jugador.body.a > 0.44) {
@@ -71,6 +104,7 @@ var GameLayer = cc.Layer.extend({
         // Caída, sí cae vuelve a la posición inicial
         if (this.jugador.body.p.y < -100) {
             this.jugador.body.p = cc.p(50, 150);
+            this.jugador.reiniciarAceleraciones();
         }
 
         // Eliminar formas:
@@ -117,6 +151,7 @@ var GameLayer = cc.Layer.extend({
             }
         }
 
+        // Monedas
         var grupoMonedas = this.mapa.getObjectGroup("Monedas");
         var monedasArray = grupoMonedas.getObjects();
         for (var i = 0; i < monedasArray.length; i++) {
@@ -124,9 +159,24 @@ var GameLayer = cc.Layer.extend({
                 cc.p(monedasArray[i]["x"], monedasArray[i]["y"]));
             this.monedas.push(moneda);
         }
+
+        // Enemigos
+        var grupoEnemigos = this.mapa.getObjectGroup("Enemigos");
+        var enemigosArray = grupoEnemigos.getObjects();
+        for (var i = 0; i < enemigosArray.length; i++) {
+            var enemigo = new Enemigo(this,
+                cc.p(enemigosArray[i]["x"], enemigosArray[i]["y"]));
+            enemigo.shape.setCollisionType(tipoEnemigo);
+            this.enemigos.push(enemigo);
+        }
     }, collisionSueloConJugador: function (arbiter, space) {
         this.jugador.tocaSuelo();
     }, collisionJugadorConMoneda: function (arbiter, space) {
+
+        // Emisión de partículas
+        this._emitter.setEmissionRate(5);
+        this.tiempoEfecto = 3;
+
         // Impulso extra
         this.jugador.body.applyImpulse(cp.v(300, 0), cp.v(0, 0));
 
@@ -134,6 +184,9 @@ var GameLayer = cc.Layer.extend({
         var shapes = arbiter.getShapes();
         // shapes[0] es el jugador
         this.formasEliminar.push(shapes[1]);
+    }, collisionJugadorConEnemigo: function (arbiter, space) {
+        this.jugador.body.p = cc.p(50, 150);
+        this.jugador.reiniciarAceleraciones();
     }
 
 });

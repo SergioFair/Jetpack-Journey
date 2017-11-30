@@ -6,30 +6,43 @@ var Pinchos = cc.Class.extend({
     ctor: function (gameLayer, posicion) {
 
         this.gameLayer = gameLayer;
-    
-        // Crear Sprite - Cuerpo y forma
-        this.sprite = new cc.PhysicsSprite(res.pinchos_png);
 
-        // Cuerpo dinámico, SI le afectan las fuerzas
-        this.body = new cp.Body(5, cp.momentForBox(1,
-            this.sprite.getContentSize().width,
-            this.sprite.getContentSize().height));
+        // Crear animación
+        var framesAnimacion = [];
+        for (var i = 1; i <= 8; i++) {
+            var str = "pincho" + i + ".png";
+            var frame = cc.spriteFrameCache.getSpriteFrame(str);
+            framesAnimacion.push(frame);
+        }
+        var animacion = new cc.Animation(framesAnimacion, 0.2);
+        var actionAnimacionBucle =
+            new cc.RepeatForever(new cc.Animate(animacion));
+
+        // Crear Sprite - Cuerpo y forma
+        this.sprite = new cc.PhysicsSprite("#pincho1.png");
+
+        // Cuerpo estático, NO le afectan las fuerzas
+        this.body = new cp.StaticBody();
 
         this.body.setPos(posicion);
-        this.body.setAngle(0);
         this.sprite.setBody(this.body);
-        // Se añade el cuerpo al espacio
-        gameLayer.space.addBody(this.body);
+        // Los cuerpos estáticos nunca se añaden al Space
+        var radio = this.sprite.getContentSize().width / 2;
 
         // forma
         this.shape = new cp.BoxShape(this.body,
             this.sprite.getContentSize().width - 16,
             this.sprite.getContentSize().height - 16);
 
+        this.shape.setCollisionType(tipoEnemigo);
+
         // agregar forma estatica
         gameLayer.space.addStaticShape(this.shape);
-        // añadir sprite a la capa
 
+        // ejecutar la animación
+        this.sprite.runAction(actionAnimacionBucle);
+
+        // añadir sprite a la capa
         gameLayer.addChild(this.sprite, 10);
     }
 });
